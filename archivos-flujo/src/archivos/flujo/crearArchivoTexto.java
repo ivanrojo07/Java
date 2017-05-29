@@ -22,7 +22,7 @@ public class crearArchivoTexto {
         PrintWriter salida = null;
         try{
             Scanner sc = new Scanner(System.in);
-            fw = new FileWriter("C:/archivos/datos.txt");
+            fw = new FileWriter("C:/archivos/datos.txt", true);//El segundo parametro es para saber si escribe sobre lo ya escrito o sorbreescribe
             salida = new PrintWriter(fw);
             String cadena;
             System.out.println("Introduce texto. Para acabar introduce la cadena FIN: ");
