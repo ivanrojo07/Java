@@ -22,7 +22,7 @@ public class CrearArchivoBinario {
     
     public void abrirArchivo(){
         try {
-            salida = new ObjectOutputStream(new FileOutputStream("oersonas.ser"));
+            salida = new ObjectOutputStream(new FileOutputStream("personas.ser"));
         } catch (FileNotFoundException ex) {
             Logger.getLogger(CrearArchivoBinario.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
