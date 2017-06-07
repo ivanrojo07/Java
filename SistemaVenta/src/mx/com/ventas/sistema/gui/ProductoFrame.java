@@ -30,8 +30,10 @@ public class ProductoFrame extends javax.swing.JDialog {
     DefaultComboBoxModel<Categoria> modeloCategorias;
     DefaultComboBoxModel<Proveedor> modeloProveedor;
     BaseDatos bd;
+    boolean estaActualizando;
+    String informacion = "";
     
-    public ProductoFrame(java.awt.Frame parent, boolean modal) {
+    public ProductoFrame(java.awt.Frame parent, boolean modal, Producto producto, ImageIcon icon, String titulo, boolean actualizando) {
         super(parent, modal);
         modeloCategorias = new DefaultComboBoxModel<Categoria>();
         modeloProveedor = new  DefaultComboBoxModel<Proveedor>();
@@ -39,6 +41,38 @@ public class ProductoFrame extends javax.swing.JDialog {
         cargarModeloCat();
         cargarModeloProv();
         initComponents();
+        
+        this.estaActualizando = actualizando;
+        this.setTitle(titulo);
+        if(producto!=null){
+            cargarProducto(producto, icon);
+            
+        }
+    }
+    
+    private void cargarProducto(Producto producto, ImageIcon icono) {
+        lblImagenArticulo.setIcon(icono);
+        String clave = producto.getIdProducto();
+        String nombre = producto.getNomProducto();
+        String descripcion = producto.getDescProducto();
+        double stockRequerido = producto.getStockProducto();
+        String unidad = producto.getUnidadProducto();
+        double precioCompra = producto.getPrecioCompraProducto();
+        double precioVenta = producto.getPrecioVentaProducto();
+        
+        
+        campoclave.setText(clave);
+        camponombre.setText(nombre);
+        areaDescripcion.setText(descripcion);
+        campoStock.setText(String.valueOf(stockRequerido));
+        comboUnidades.setSelectedItem(unidad);
+        
+        campoPrecioCompra.setText(String.valueOf(precioCompra));
+        campoPrecioVenta.setText(String.valueOf(precioVenta));
+        
+        campoclave.setEnabled(false);
+        camponombre.setEnabled(false);
+        
     }
     
     private void cargarModeloCat(){
@@ -55,6 +89,9 @@ public class ProductoFrame extends javax.swing.JDialog {
         for(Proveedor proveedor : listaproveedor){
             modeloProveedor.addElement(proveedor);
         }
+    }
+    String getInformacion() {
+        return this.informacion;
     }
 
     /**
@@ -299,26 +336,47 @@ public class ProductoFrame extends javax.swing.JDialog {
         // TODO add your handling code here:
         String codigo = campoclave.getText();
         String nombre = camponombre.getText();
-        Categoria categoria = (Categoria) comboCategoria.getSelectedItem();
         String descripcion = areaDescripcion.getText();
-        String unidad = (String) comboUnidades.getSelectedItem();
         double preciocompra = Double.parseDouble(campoPrecioCompra.getText());
         double precioventa = Double.parseDouble(campoPrecioVenta.getText());
-        Proveedor proveedor = (Proveedor) comboProveedor.getSelectedItem();
         double stock = Double.parseDouble(campoStock.getText());
+        String unidad = (String) comboUnidades.getSelectedItem();
+        Categoria categoria = (Categoria) comboCategoria.getSelectedItem();
+        Proveedor proveedor = (Proveedor) comboProveedor.getSelectedItem();
         
-        if(imgArticleFile == null){
-            JOptionPane.showMessageDialog(this, "Favor elegir una fotografía de producto");
+        if(estaActualizando== true){
+            if(imgArticleFile == null){
+                Producto producto = new Producto(codigo, nombre, descripcion, 
+                        stock, null, unidad, preciocompra, precioventa,
+                        0.0, categoria.getIdCategoriaProd(), proveedor.getIdProveedor());
+                bd.actualizarProducto(producto, false);
+            }
+            else{
+                Producto producto = new Producto(codigo, nombre, descripcion, 
+                        stock, imgArticleFile, unidad, preciocompra, precioventa, 
+                        0.0, categoria.getIdCategoriaProd(), proveedor.getIdProveedor());
+                bd.actualizarProducto(producto, true);
+            }
+            JOptionPane.showMessageDialog(this, "Se ha guardado el producto");
+            this.dispose();
+            informacion="1";
+        }
+       
+        else{     
+        if(estaActualizando == false && imgArticleFile == null){
+                JOptionPane.showMessageDialog(this, "Favor elegir una fotografía de producto");
         }
         else{
-            Producto producto = new Producto(codigo, nombre, descripcion, stock, 
-                imgArticleFile, unidad, preciocompra, precioventa, 0.0,
-                categoria.getIdCategoriaProd(), proveedor.getIdProveedor());
+                Producto producto = new Producto(codigo, nombre, descripcion, stock, 
+                    imgArticleFile, unidad, preciocompra, precioventa, 0.0,
+                    categoria.getIdCategoriaProd(), proveedor.getIdProveedor());
            
-            bd.insertarProducto(producto);
-            JOptionPane.showMessageDialog(this, "Se realizó correctamente la inserción");
-            this.dispose();
+                bd.insertarProducto(producto);
+                JOptionPane.showMessageDialog(this, "Se realizó correctamente la inserción");
+                this.dispose();
         }
+        }
+        
         
         
     }//GEN-LAST:event_btnGuardarActionPerformed
@@ -359,7 +417,7 @@ public class ProductoFrame extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                ProductoFrame dialog = new ProductoFrame(new javax.swing.JFrame(), true);
+                ProductoFrame dialog = new ProductoFrame(new javax.swing.JFrame(), true,null,null, "Nuevo producto",false);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
@@ -398,4 +456,8 @@ public class ProductoFrame extends javax.swing.JDialog {
     private javax.swing.JLabel lblImagenArticulo;
     private org.jdesktop.beansbinding.BindingGroup bindingGroup;
     // End of variables declaration//GEN-END:variables
+
+    
+
+    
 }
