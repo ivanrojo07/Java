@@ -5,11 +5,19 @@
  */
 package mx.com.ventas.sistema.gui;
 
+import java.awt.Image;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.event.TableModelEvent;
@@ -96,6 +104,34 @@ public class VentasFrame extends javax.swing.JInternalFrame {
     }
     private void limpiarListaProd() {
         modeloListaProductos.clear();
+    }
+    private void desplegarFoto(Producto prod){
+        ImageIcon imagenProducto =null;
+        try{
+            //obtener imagen
+            InputStream is = db.buscarFoto(prod);
+            BufferedImage bi = ImageIO.read(is);
+            imagenProducto = new ImageIcon(bi);
+            
+            //Redimension de imagen para ajustarla al tamaño del JLabel
+            Image imgProd = imagenProducto.getImage();
+            int anchoEtiqueta = lblImagen.getWidth();
+            int altoEtiqueta = lblImagen.getHeight();
+            
+            //Se crea un nuevo objeto Image con la imagen redimensionada
+            Image imgRedimensionada = imgProd.getScaledInstance(anchoEtiqueta, altoEtiqueta, Image.SCALE_DEFAULT);
+            
+            //Crea un nuevo objeto ImagenIcon a partir de la imagen redimensionada
+            ImageIcon iconRedimensionado = new ImageIcon(imgRedimensionada);
+            
+            //Establecemos la imagen reidmensionada como icono de la etiqueta de imagen
+            lblImagen.setIcon(iconRedimensionado);
+            
+            
+            
+        } catch (IOException ex) {
+            Logger.getLogger(InventariosFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -218,11 +254,11 @@ public class VentasFrame extends javax.swing.JInternalFrame {
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblImagen, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblImagen, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 348, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(lblImagen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(lblImagen, javax.swing.GroupLayout.PREFERRED_SIZE, 146, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         listaBuscarProd.setModel(modeloListaProductos);
@@ -337,6 +373,8 @@ public class VentasFrame extends javax.swing.JInternalFrame {
             Producto prod = (Producto)list.getSelectedValue();
             System.out.println("El producto es: "+prod);
             anadirProductoAVenta(prod);
+            
+            desplegarFoto(prod);
             
         }
     }//GEN-LAST:event_listaBuscarProdMousePressed

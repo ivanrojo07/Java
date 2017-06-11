@@ -8,6 +8,7 @@ package mx.com.ventas.sistema.datos;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -15,6 +16,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +34,7 @@ public class BaseDatos {
     
     Connection conn = null;
     PreparedStatement st= null;
+    Statement s = null;
     ResultSet rs = null; //interface
     
     public BaseDatos(){
@@ -153,11 +156,11 @@ public class BaseDatos {
             st = conn.prepareStatement(sql);
             
             //st.setInt(1, detalleventa.getIdDetalleVenta());
-            st.setInt(1, detalleventa.getIdVenta());
+            st.setLong(1, detalleventa.getIdVenta());
             st.setString(2, detalleventa.getIdProducto());
             st.setDouble(3, detalleventa.getCantidadVendida());
             
-            st.executeUpdate(sql);
+            st.executeUpdate();
             
         } catch (SQLException ex) {
             Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
@@ -174,8 +177,11 @@ public class BaseDatos {
     }
     
     
-    public void insertarVenta(Ventas venta){
+    public Long insertarVenta(Ventas venta){
+        Long lastVal =0l;
+        
         try {
+            
             conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db-sistema", "postgres", "toor");
             String sql = "INSERT INTO ventas (monto_venta, fecha_venta) "
                     + "values(?,?)";
@@ -186,6 +192,13 @@ public class BaseDatos {
             st.setDate(2, venta.getFechaVenta());
             
             st.executeUpdate();
+            st.close();
+            
+            st= this.conn.prepareStatement("SELECT lastval()");
+            rs = st.executeQuery();
+            while(rs.next()){
+                lastVal = rs.getLong("lastval");
+            }
             
         } catch (SQLException ex) {
             Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
@@ -193,11 +206,12 @@ public class BaseDatos {
         finally {
             try {
                 conn.close();
-                st.close();
+                rs.close();
             } catch (SQLException ex) {
                 Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        return lastVal;
     }
     
     public ArrayList<Producto> obtenerProductos(){
@@ -342,11 +356,11 @@ public class BaseDatos {
             rs = st.executeQuery();
             while(rs.next()){
                 int idDetaVent = rs.getInt(1);
-                int idVenta = rs.getInt(2);
+                Long idVenta = rs.getLong(2);
                 String idProd = rs.getString(3);
                 double cantVendi= rs.getDouble(4);
                 
-                DetalleVenta detalleventa = new DetalleVenta(idDetaVent, idVenta,
+                DetalleVenta detalleventa = new DetalleVenta(idVenta,
                         idProd, cantVendi);
                 
                 listadetalleventa.add(detalleventa);
@@ -380,7 +394,7 @@ public class BaseDatos {
                 double montoVenta= rs.getDouble(2);
                 Date fechaVenta=rs.getDate(3);
                 
-                Ventas venta = new Ventas(idVenta, montoVenta, fechaVenta);
+                Ventas venta = new Ventas( montoVenta, fechaVenta);
                 listaventa.add(venta);
             }
         } catch (SQLException ex) {
@@ -413,6 +427,195 @@ public class BaseDatos {
             
             st.executeUpdate();
         } catch (SQLException ex) {
+            Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally{
+            try {
+                st.close();
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+    }
+    
+    public ArrayList<Producto> Buscaproducto(String criterio){
+        ArrayList<Producto> listaProductos= new ArrayList<Producto>();
+        try{
+            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db-sistema", "postgres", "toor");
+            
+            String sql = "SELECT * FROM cat_productos "
+                    + "WHERE id_prod LIKE "
+                    + "'"+criterio+"%'"
+                    + "OR nombre_prod LIKE "
+                    + "'%"+criterio+"%'"
+                    + "ORDER BY id_prod";
+            s= conn.createStatement();
+            rs = s.executeQuery(sql);
+            
+           while(rs.next()){
+               String idProd = rs.getString(1);
+               String nomProd = rs.getString(2);
+               String descProd = rs.getString(3);
+               double stockProd = rs.getDouble(4);
+//               byte fotoProd = rs.getByte(5);
+               String unidadProd = rs.getString(6);
+               double preciocomProd = rs.getDouble(7);
+               double precioventProd = rs.getDouble(8);
+               double existenProd = rs.getDouble(9);
+               int idCategProd = rs.getInt(10);
+               int idProveedor = rs.getInt(11);
+               
+               Producto producto = new Producto(idProd, nomProd, descProd, stockProd, 
+                       null, unidadProd, preciocomProd, precioventProd, existenProd, idCategProd, idProveedor);
+               listaProductos.add(producto);
+                
+//               System.out.println("ID: "+ idProd);
+//               System.out.println("nombre: "+nomProd);
+//               System.out.println("Descuento: "+descProd);
+//               System.out.println("Stock: "+descProd);
+//               //System.out.println("Foto: "+fotoProd);
+//               System.out.println("Unidades: "+unidadProd);
+//               System.out.println("Precio Compra: "+preciocomProd);
+//               System.out.println("Precio Venta: "+precioventProd);
+//               System.out.println("Existencia: "+existenProd);
+//               System.out.println("Id Categoria: "+idCategProd);
+//               System.out.println("Id Proveedor: "+idProveedor);
+           }
+        } catch (SQLException ex) {
+            Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally{
+            try {
+                s.close();
+                conn.close();
+                rs.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        return listaProductos;
+    }
+    
+    public void borrarProducto(Producto producto){
+         try {
+            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db-sistema", "postgres", "toor");
+            
+            String sql = "DELETE FROM cat_productos WHERE id_prod = ?";
+            st = conn.prepareStatement(sql);
+            
+            st.setString(1, producto.getIdProducto());
+            
+            st.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        finally{
+            try {
+                st.close();
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+    }
+    
+    public InputStream buscarFoto(Producto producto){
+        InputStream streamFoto=null;
+        try{
+            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db-sistema", "postgres", "toor");
+            
+            String sql = "SELECT foto_prod FROM cat_productos WHERE id_prod = ?";
+            st = conn.prepareStatement(sql);
+            
+            st.setString(1, producto.getIdProducto());
+            
+            rs = st.executeQuery();
+            
+            while(rs.next()){
+                streamFoto = rs.getBinaryStream("foto_prod");
+                
+            }
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally{
+            try {
+                st.close();
+                conn.close();
+                rs.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+        return streamFoto;
+    }
+    
+    public void actualizarProducto(Producto producto, boolean cambiarFoto){
+        try{
+            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/db-sistema", "postgres", "toor");
+            if(cambiarFoto == true){
+                File fileFoto = producto.getFotoProducto();
+                FileInputStream fis = new FileInputStream(fileFoto);
+                
+                String sql = "UPDATE cat_productos SET desc_prod=?, stock_prod=?,"
+                    + "foto_prod=?, unidad_prod=?, precio_compra_prod=?,"
+                    + "precio_venta_prod=?, existencia_prod=?, id_categoria_prod=?,"
+                    + "id_proveedor=? WHERE "
+                    + "id_prod=?";
+                st = conn.prepareStatement(sql);
+            
+                st.setString(1, producto.getDescProducto());
+                st.setDouble(2, producto.getStockProducto());
+                long tamanoFoto = fileFoto.length();
+                st.setBinaryStream(3, fis, tamanoFoto);
+                st.setString(4, producto.getUnidadProducto());
+                st.setDouble(5, producto.getPrecioCompraProducto());
+                st.setDouble(6, producto.getPrecioVentaProducto());
+                st.setDouble(7, producto.getExistenciasProducto());
+                st.setInt(8, producto.getIdCategoria());
+                st.setInt(9, producto.getIdProveedor());
+                st.setString(10, producto.getIdProducto());
+                
+                
+            }
+            else{
+                 
+                String sql = "UPDATE cat_productos SET desc_prod=?, stock_prod=?,"
+                    + " unidad_prod=?, precio_compra_prod=?,"
+                    + "precio_venta_prod=?, existencia_prod=?, id_categoria_prod=?,"
+                    + "id_proveedor=? WHERE "
+                    + "id_prod=?";
+                st = conn.prepareStatement(sql);
+            
+                st.setString(1, producto.getDescProducto());
+                st.setDouble(2, producto.getStockProducto());
+                
+                st.setString(3, producto.getUnidadProducto());
+                st.setDouble(4, producto.getPrecioCompraProducto());
+                st.setDouble(5, producto.getPrecioVentaProducto());
+                st.setDouble(6, producto.getExistenciasProducto());
+                st.setInt(7, producto.getIdCategoria());
+                st.setInt(8, producto.getIdProveedor());
+                st.setString(9, producto.getIdProducto());
+                
+                
+            }
+            
+            st.executeUpdate();
+            
+            
+            
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (FileNotFoundException ex) {
             Logger.getLogger(BaseDatos.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally{

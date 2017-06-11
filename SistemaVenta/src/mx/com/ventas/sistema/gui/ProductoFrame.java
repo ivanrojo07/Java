@@ -51,7 +51,22 @@ public class ProductoFrame extends javax.swing.JDialog {
     }
     
     private void cargarProducto(Producto producto, ImageIcon icono) {
-        lblImagenArticulo.setIcon(icono);
+        
+        //Redimension de imagen para ajustarla al tamaño del JLabel
+            Image imgProd = icono.getImage();
+            int anchoEtiqueta = lblImagenArticulo.getWidth();
+            int altoEtiqueta = lblImagenArticulo.getHeight();
+            
+            //Se crea un nuevo objeto Image con la imagen redimensionada
+            Image imgRedimensionada = imgProd.getScaledInstance(anchoEtiqueta, altoEtiqueta, Image.SCALE_DEFAULT);
+            
+            //Crea un nuevo objeto ImagenIcon a partir de la imagen redimensionada
+            ImageIcon iconRedimensionado = new ImageIcon(imgRedimensionada);
+            
+            //Establecemos la imagen reidmensionada como icono de la etiqueta de imagen
+            lblImagenArticulo.setIcon(iconRedimensionado);
+        
+        
         String clave = producto.getIdProducto();
         String nombre = producto.getNomProducto();
         String descripcion = producto.getDescProducto();
@@ -322,9 +337,9 @@ public class ProductoFrame extends javax.swing.JDialog {
             imgArticleFile = chooser.getSelectedFile();
             ImageIcon icono = new ImageIcon(imgArticleFile.getAbsolutePath());
             Image imagen = icono.getImage();
-            imagen.getScaledInstance(anchoImagen, altoImagen, Image.SCALE_DEFAULT);
+            Image imagenRedimensionada = imagen.getScaledInstance(anchoImagen, altoImagen, Image.SCALE_DEFAULT);
             
-            ImageIcon iconoRedimensionado = new ImageIcon(imagen);
+            ImageIcon iconoRedimensionado = new ImageIcon(imagenRedimensionada);
             
             lblImagenArticulo.setIcon(iconoRedimensionado);
             
@@ -334,9 +349,9 @@ public class ProductoFrame extends javax.swing.JDialog {
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         // TODO add your handling code here:
-        String codigo = campoclave.getText();
-        String nombre = camponombre.getText();
-        String descripcion = areaDescripcion.getText();
+        String codigo = campoclave.getText().toLowerCase();
+        String nombre = camponombre.getText().toLowerCase();
+        String descripcion = areaDescripcion.getText().toLowerCase();
         double preciocompra = Double.parseDouble(campoPrecioCompra.getText());
         double precioventa = Double.parseDouble(campoPrecioVenta.getText());
         double stock = Double.parseDouble(campoStock.getText());

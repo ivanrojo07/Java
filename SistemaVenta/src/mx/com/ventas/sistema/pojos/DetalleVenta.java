@@ -11,12 +11,12 @@ package mx.com.ventas.sistema.pojos;
  */
 public class DetalleVenta {
     private int idDetalleVenta;
-    private int idVenta;
+    private Long idVenta;
     private String idProducto;
     private double cantidadVendida;
 
-    public DetalleVenta(int idDetalleVenta, int idVenta, String idProducto, double cantidadVendida) {
-        this.idDetalleVenta = idDetalleVenta;
+    public DetalleVenta(Long idVenta, String idProducto, double cantidadVendida) {
+        
         this.idVenta = idVenta;
         this.idProducto = idProducto;
         this.cantidadVendida = cantidadVendida;
@@ -38,11 +38,11 @@ public class DetalleVenta {
         this.idDetalleVenta = idDetalleVenta;
     }
 
-    public int getIdVenta() {
+    public Long getIdVenta() {
         return idVenta;
     }
 
-    public void setIdVenta(int idVenta) {
+    public void setIdVenta(Long idVenta) {
         this.idVenta = idVenta;
     }
 
